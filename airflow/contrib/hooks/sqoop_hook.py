@@ -52,6 +52,7 @@ class SqoopHook(BaseHook):
             properties = {}
         self.conn = self.get_connection(conn_id)
         connection_parameters = self.conn.extra_dejson
+        self.sqoop_home = connection_parameters.get('sqoop_home', None)
         self.job_tracker = connection_parameters.get('job_tracker', None)
         self.namenode = connection_parameters.get('namenode', None)
         self.libjars = connection_parameters.get('libjars', None)
@@ -88,10 +89,15 @@ class SqoopHook(BaseHook):
                                             stderr))
 
     def _prepare_command(self, export=False):
-        if export:
-            connection_cmd = ["sqoop", "export"]
+        if self.sqoop_home:
+            sqoop = self.sqoop_home + '/bin/sqoop'
         else:
-            connection_cmd = ["sqoop", "import"]
+            sqoop = 'sqoop'
+
+        if export:
+            connection_cmd = [sqoop, "export"]
+        else:
+            connection_cmd = [sqoop, "import"]
 
         if self.verbose:
             connection_cmd += ["--verbose"]
