@@ -72,6 +72,7 @@ class HiveCliHook(BaseHook):
             mapred_queue_priority=None,
             mapred_job_name=None):
         conn = self.get_connection(hive_cli_conn_id)
+        self.hive_home = conn.extra_dejson.get('hive_home', '')
         self.hive_cli_params = conn.extra_dejson.get('hive_cli_params', '')
         self.use_beeline = conn.extra_dejson.get('use_beeline', False)
         self.auth = conn.extra_dejson.get('auth', 'noSasl')
@@ -94,11 +95,11 @@ class HiveCliHook(BaseHook):
         This function creates the command list from available information
         """
         conn = self.conn
-        hive_bin = 'hive'
+        hive_bin = self.hive_home + '/bin/hive' if self.hive_home else 'hive'
         cmd_extra = []
 
         if self.use_beeline:
-            hive_bin = 'beeline'
+            hive_bin = self.hive_home + '/bin/beeline' if self.hive_home else 'beeline'
             jdbc_url = "jdbc:hive2://{conn.host}:{conn.port}/{conn.schema}"
             if configuration.get('core', 'security') == 'kerberos':
                 template = conn.extra_dejson.get(
